@@ -377,9 +377,47 @@ first_column = matrix[:, 0]
 # instead of NumPy vectorization is a major "red flag" for senior roles.
 
 
+# ==============================================================================
+# 6. DESCRIPTORS (THE POWER BEHIND PROPERTIES & METHODS)
+# ==============================================================================
+# A descriptor is a class attribute that implements __get__, __set__, or __delete__.
+#
+# Precedence Order of Attribute Lookup (Strict Resolution Hierarchy):
+# 1. DATA descriptor (implements __get__ AND __set__/__delete__). e.g., @property
+# 2. Instance dict (obj.__dict__)
+# 3. NON-DATA descriptor (implements ONLY __get__). e.g., standard methods, classmethods
+# 4. Class dict / parent class dict
+# 5. __getattr__ (if defined)
+#
+# Tip: Never store instance-specific data in the descriptor's class-level attributes.
+# Use `__set_name__(self, owner, name)` to dynamically generate unique keys in `obj.__dict__`.
+
+# ==============================================================================
+# 7. ASYNCIO & COOPERATIVE CONCURRENCY
+# ==============================================================================
+# Python's asyncio is single-threaded and relies on cooperative multitasking.
+#
+# - Coroutine: Lazy object returned by calling `async def` function.
+# - Task: A Scheduled Coroutine wrapper that runs concurrently (created via `asyncio.create_task`).
+# - The Golden Rule: NEVER block the event loop with synchronous calls (e.g. `time.sleep` or heavy CPU computations).
+# - Threading Solution: Use `await asyncio.to_thread(func, *args)` to offload blocking tasks to a pool.
+# - Structured Concurrency: In Python 3.11+, use `async with asyncio.TaskGroup()` instead of `asyncio.gather`. 
+#   If one task fails, all other tasks in the group are immediately cancelled.
+
+# ==============================================================================
+# 8. ADVANCED TESTING & MOCKING
+# ==============================================================================
+# - Mock vs MagicMock: MagicMock implements magic methods (__iter__, __len__, etc.) by default.
+# - The Critical Gotcha: Patch the name where it is *imported* (used), not where it is *defined*.
+#   Example: To mock requests inside `services.py`, use `patch('services.requests.get')` NOT `patch('requests.get')`.
+# - Async Mocking: Use `AsyncMock` (Python 3.8+) for coroutines to make them awaitable.
+# - Side Effects: Use `mock.side_effect = Exception(...)` to test errors, or an iterable `[1, 2, 3]` for sequential returns.
+
+
 # RESERVED WORDS
 
 # Python only has a few dozen reserved words: 
 # False, None, True, and, as, assert, async, await, break, class, continue, def, del, elif, else, except, finally, for, from, global, if, 
 # import, in, is, lambda, nonlocal, not, or, pass, raise, return, try, while, with, yield.
+
 

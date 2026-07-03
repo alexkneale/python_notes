@@ -257,6 +257,7 @@ if __name__ == "__main__":
     # complex_signature(1, 2, kw_only1="test") # TypeError: standard1 missing
     # complex_signature(1, 2, 3, 4, 5) # TypeError: takes 4 positional, 5 given
     print(complex_signature(1, 2, 3, standard2=4, kw_only1="forced_kw"))
+    print(argument_unpacker())
     
     print("\n--- 2. Scope & Closures ---")
     print(f"Before scope demo: GLOBAL_VAR = '{GLOBAL_VAR}'")
