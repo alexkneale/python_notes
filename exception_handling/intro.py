@@ -255,6 +255,30 @@ def handle_exception_groups():
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (EXCEPTION HANDLING)
+# ============================================================================
+"""
+Q1: When does the `else` block in a `try/except/else/finally` statement execute?
+A: The `else` block executes only if the code in the `try` block completes successfully without raising any exceptions.
+   This is useful for isolating the code that you want to guard (in the `try` block) from code that runs only if the guarded step succeeded,
+   preventing the accidental catching of exceptions raised by subsequent logic.
+
+Q2: What is "Exception Chaining" using `raise ... from ...`, and what is the difference between that and a bare `raise`?
+A: 
+- `raise NewException from original_exception` sets the `__cause__` of the new exception to the original one.
+  This preserves the full traceback history (explicit exception chaining), showing exactly how one error led to another.
+- `raise NewException` (implicit chaining) shows both but links them with "During handling of the above exception...".
+- Using `raise NewException from None` explicitly suppresses the previous context traceback, making the output cleaner.
+
+Q3: What are Exception Groups (`ExceptionGroup`) and the `except*` syntax introduced in Python 3.11?
+A: Exception Groups allow a program to raise and handle multiple unrelated exceptions concurrently.
+   This is common in concurrent frameworks (like asyncio or TaskGroups) where multiple tasks can fail at the same time.
+   The `except*` syntax allows you to match and handle specific sub-types of exceptions out of an ExceptionGroup individually, 
+   unwrapping only the matched errors while leaving the rest to propagate.
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 

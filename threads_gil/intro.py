@@ -300,6 +300,32 @@ def demonstrate_thread_pools():
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (THREADS & GIL)
+# ============================================================================
+"""
+Q1: What is the GIL (Global Interpreter Lock), and why was it introduced in CPython?
+A: The GIL is a mutual exclusion lock (mutex) that ensures only one native thread executes Python bytecode at a time.
+   It was introduced to simplify CPython's implementation by making memory management (specifically reference counting) 
+   inherently thread-safe, avoiding complex locking schemes around every single object.
+
+Q2: Since the GIL ensures only one thread executes bytecode at a time, why do we still need standard `threading.Lock`?
+A: The GIL protects the *interpreter's internal state* (like object reference counts), but it does not protect 
+   *your application's logical state*. 
+   Python's thread scheduler can preemptively swap threads at any time (e.g., after executing a certain number of instructions).
+   If a non-atomic operation (like `x += 1`, which is compiled into multiple bytecode instructions: read, add, write) 
+   is interrupted mid-execution, it creates a race condition. You must use a lock/mutex to make such operations atomic.
+
+Q3: When should you use Threading vs. Multiprocessing?
+A: 
+- Threading is best for **I/O-bound** tasks (e.g., network calls, file reads, or database operations). 
+  When a thread waits for I/O, CPython releases the GIL, allowing other threads to run concurrently.
+- Multiprocessing is best for **CPU-bound** tasks (e.g., calculations, data processing). 
+  By spawning separate OS processes (each with its own independent memory space and GIL), you can utilize 
+  multiple physical CPU cores to run CPU-bound work in parallel.
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 

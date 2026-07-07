@@ -218,6 +218,28 @@ uppercase(5) # Python Compiler: "Looks good to me!" -> Generates Bytecode
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (COMPILE & RUN)
+# ============================================================================
+"""
+Q1: Is Python an interpreted language or a compiled language?
+A: Both. CPython first parses and compiles Python source code (.py) into an intermediate,
+   lower-level representation called Bytecode (stored as .pyc files). 
+   Then, the Python Virtual Machine (PVM)—a stack-based interpreter—reads and executes those bytecode instructions.
+
+Q2: What is "Late Binding" in Python closures, and why does it catch developers off guard?
+A: Python's closures bind variables by reference/name, not by value. The lookup of enclosing-scope variables 
+   happens when the function is *called*, not when it is *defined*.
+   In a loop creating lambda functions, all lambdas will reference the same final value of the loop variable.
+   To fix this, we can force early binding using a default parameter value (e.g., `lambda x=x: x`).
+
+Q3: Why doesn't a runtime error (like referencing an undefined variable) stop a Python file from compiling?
+A: CPython's compiler primarily checks structural syntax and indentation. It does not perform static analysis 
+   to check if variables exist, if types match, or if methods belong to objects. Since these names are resolved 
+   at runtime via dynamic lookups, any invalid reference will compile perfectly but raise a NameError/AttributeError at runtime.
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 """
@@ -227,7 +249,7 @@ it as a module into another file. This allows a file to serve as a reusable libr
 When you run a Python file directly, Python sets a special internal variable called __name__ to the string "__main__". If you import 
 that file into a different Python script, __name__ is set to the file's actual module/file name instead
 """
-if __name__ == "main":
+if __name__ == "__main__":
     print("--- 1 & 2. Compile-Time Errors ---")
     demonstrate_compile_time_errors()
 

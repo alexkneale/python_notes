@@ -56,6 +56,22 @@ B. TUPLES (Fixed Arrays)
    - Smaller memory footprint than lists.
    - Immutable, making them hashable if all their elements are hashable.
 
+What does hashable mean?
+
+A hashable object is an object in programming that has a fixed integer hash value which 
+never changes during its lifetime. This property allows the object to be safely used as 
+a dictionary key or set element, as hash-based data structures rely on these semi-unique 
+values to locate and store items instantly. In languages like Python, an object is hashable 
+if it has a __hash__() method and can be compared to other objects using an __eq__() method. 
+
+The core requirements include:
+
+- Immutability: Its value or state cannot change. Mutable objects (like lists or dictionaries)
+    do not have a __hash__ method, making them unhashable.
+
+- Consistency: If two objects are equal 
+    (e.g., A == B), they must produce identical hash values.
+
 C. DICTIONARIES (Hash Tables)
    - Average case O(1) lookup, insertion, and deletion.
    - Dict keys MUST be 'hashable' (must implement __hash__ and __eq__).
@@ -298,6 +314,31 @@ def demonstrate_file_io():
     import os
     if os.path.exists(filename):
         os.remove(filename)
+
+
+# ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (BASICS)
+# ============================================================================
+"""
+Q1: What are the primary differences between lists and tuples in Python?
+A: 
+- Lists are mutable (can change elements, append, extend) and dynamic arrays.
+  Because they overallocate memory to amortize append operations to O(1), they have a larger memory overhead.
+- Tuples are immutable (cannot be modified after creation) and fixed arrays.
+  They are hashable (if their contents are hashable), making them eligible as dict keys, and are more memory-efficient.
+
+Q2: Why must dictionary keys be 'hashable' and what does that mean?
+A: Dictionary lookups are O(1) average-case because they are implemented as hash tables.
+   To lookup a key, Python computes its hash using `hash()`.
+   An object is hashable if it has a lifetime-constant hash value (implements `__hash__()`) 
+   and can be compared to other objects (implements `__eq__()`).
+   Mutable objects like lists and dicts are not hashable because their values can change, which would corrupt their hash values and make lookups impossible.
+
+Q3: What is the loop-else block in Python?
+A: In `for` and `while` loops, the `else` block executes only if the loop completes normally 
+   (without encountering a `break` statement). If a `break` is triggered, the `else` block is bypassed.
+   This is highly useful for search algorithms (avoiding the need for search state flags).
+"""
 
 
 # ============================================================================

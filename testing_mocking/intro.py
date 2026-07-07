@@ -242,6 +242,31 @@ def run_unittest_suite():
     # Load and run the specific test case defined above
     suite = unittest.TestLoader().loadTestsFromTestCase(TestApplicationFlow)
     unittest.TextTestRunner(verbosity=1).run(suite)
+# ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (TESTING & MOCKING)
+# ============================================================================
+"""
+Q1: What is the difference between `Mock` and `MagicMock` in Python's `unittest.mock`?
+A: 
+- `Mock` is a basic object that allows you to mock attributes and method calls, returning a new Mock for any undefined attributes.
+- `MagicMock` is a subclass of `Mock` that comes pre-configured with support for Python's magic (dunder) methods 
+  (e.g., `__len__`, `__iter__`, `__str__`, `__enter__`, `__exit__`).
+  If you need to mock an object that will be used in a `with` statement, a `for` loop, or has its length checked, use `MagicMock`.
+
+Q2: What is the difference between `return_value` and `side_effect` on a Mock?
+A: 
+- `return_value` defines a static value that is returned every single time the mocked method is called.
+- `side_effect` allows you to define a dynamic behavior. It can accept:
+  1. An exception class or instance (which will be raised when the mock is called).
+  2. An iterable (where each call to the mock returns the next item in the iterable).
+  3. A custom callable/function (which receives the arguments passed to the mock and executes custom logic).
+
+Q3: What does the `@patch` decorator do, and why is target string resolution important?
+A: `@patch` intercepts imports of a specific module or class and replaces it with a Mock during the test run.
+   A key gotcha is "mocking where the class is looked up, not where it is defined."
+   If `module_a` imports `from module_b import Client`, and you patch `module_b.Client`, 
+   `module_a`'s reference is unchanged. You must instead patch the target location: `module_a.Client`.
+"""
 
 
 if __name__ == "__main__":

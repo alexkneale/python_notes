@@ -277,6 +277,29 @@ def demonstrate_init_subclass():
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (METACLASSES)
+# ============================================================================
+"""
+Q1: What is a metaclass in Python, and what is the default metaclass?
+A: A metaclass is a "class of a class." It defines how classes themselves are constructed and behaved.
+   By default, all classes in Python are instances of the built-in metaclass `type`.
+   When you declare a class, Python calls the metaclass to instantiate and compile the class object.
+
+Q2: What is the difference between `__new__` and `__init__` in a metaclass?
+A: 
+- `__new__(cls, name, bases, dct)` is called to allocate and return the actual Class object in memory.
+  It is used when you need to modify the class attributes, methods, or parents *before* the class is created.
+- `__init__(self, name, bases, dct)` is called after the Class object is created to initialize it.
+  It is used to configure or register the class after its allocation.
+
+Q3: Why was `__init_subclass__` introduced in Python 3.6?
+A: Creating and maintaining custom metaclasses is complex and can lead to metaclass conflicts in multiple inheritance.
+   `__init_subclass__` provides a simpler, cleaner way to customize subclass creation (like automatic registry,
+   attribute validation, or default configuration) directly on a base class, avoiding metaclasses entirely.
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 

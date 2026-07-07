@@ -250,6 +250,29 @@ Optimizations:
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (MEMORY MANAGEMENT)
+# ============================================================================
+"""
+Q1: What are circular references, and how does CPython handle them?
+A: A circular reference occurs when two or more objects hold strong references to each other (e.g., A references B, and B references A).
+   Because of this, their reference counts can never drop to 0, even if they become completely unreachable from the root program execution.
+   CPython solves this with a cyclical, generational garbage collector (GC) that periodically scans objects in memory,
+   identifies isolated circular groups of references, and cleans them up.
+
+Q2: What is the purpose of the `weakref` module?
+A: `weakref` allows you to create references to objects without increasing their reference count (`ob_refcnt`).
+   If only weak references to an object remain, Python will safely deallocate it, and the weak reference will return `None`.
+   This is extremely useful for building memory-efficient cache systems, lookup tables, and parent-child tree relations.
+
+Q3: Mention 3 common ways to create a memory leak in Python.
+A: 
+1. Storing data in global lists or dictionaries that are never pruned or cleared.
+2. Holding strong circular references inside custom objects that have custom `__del__` methods in Python versions prior to 3.4.
+3. Keeping a reference to a traceback object from a caught exception (as tracebacks keep the entire execution stack frame alive).
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 

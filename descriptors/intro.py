@@ -299,6 +299,33 @@ def demonstrate_lazy_property():
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (DESCRIPTORS)
+# ============================================================================
+"""
+Q1: What is a Descriptor in Python, and how does it relate to properties?
+A: A descriptor is an object that customizes attribute access (lookup, modification, deletion) 
+   by implementing any of the following dunder methods: `__get__()`, `__set__()`, or `__delete__()`.
+   Under the hood, Python's built-in `@property`, `@classmethod`, `@staticmethod`, and even bound methods 
+   are implemented using the descriptor protocol!
+
+Q2: What is the difference between a Data Descriptor and a Non-Data Descriptor?
+A: 
+- A Data Descriptor implements both `__get__()` and `__set__()` (and/or `__delete__()`).
+  It takes precedence over the instance's dictionary (`__dict__`). Even if the instance has a key with the same name, 
+  Python will route attribute access through the data descriptor.
+- A Non-Data Descriptor only implements `__get__()` (e.g., bound methods).
+  It has lower precedence than `__dict__`. If a key with the same name is added to the instance's `__dict__`, 
+  it will shadow/override the non-data descriptor.
+
+Q3: What is the purpose of the `__set_name__` method introduced in Python 3.6?
+A: Historically, a descriptor had no way of knowing the variable name it was assigned to in the parent class 
+   without passing the name explicitly to its `__init__`.
+   `__set_name__(self, owner, name)` is called automatically when the class is defined, allowing the descriptor 
+   to automatically capture the field name (e.g., storing the value inside `owner.__dict__` using the exact field name).
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 

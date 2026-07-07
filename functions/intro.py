@@ -249,6 +249,32 @@ def inspect_me(a: int, b: int = 10) -> int:
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (FUNCTIONS & SCOPES)
+# ============================================================================
+"""
+Q1: Explain the LEGB lookup rule in Python.
+A: When a variable or name is referenced in Python, the interpreter resolves it by searching four nested scopes sequentially:
+   1. L (Local): Inside the current function or lambda execution frame.
+   2. E (Enclosing): Enclosing local scopes of outer nested functions (closures).
+   3. G (Global): The module-level scope of the current file.
+   4. B (Built-ins): The global built-ins namespace (e.g., `print()`, `TypeError`).
+   If the name is not found in any of these, a `NameError` is raised.
+
+Q2: What is the difference between the `global` and `nonlocal` keywords?
+A: 
+- `global var` tells Python that inside the current function, references/bindings to `var` should target the module-level (Global) scope.
+- `nonlocal var` tells Python to bind the variable to the nearest enclosing scope (excluding the global module scope). 
+  This is typically used inside nested closure functions to modify a variable declared in the outer function.
+
+Q3: What do the `/` and `*` symbols signify in a function signature?
+A: 
+- `/` indicates that all parameters to its **left** are **positional-only**. They cannot be passed as keyword arguments.
+- `*` indicates that all parameters to its **right** are **keyword-only**. They must be passed as keywords.
+  These are useful for designing self-documenting APIs and preventing argument-binding conflicts when signatures evolve.
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 

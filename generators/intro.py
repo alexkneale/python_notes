@@ -139,8 +139,11 @@ def demonstrate_coroutines():
     print(f"Sending 10, New Avg: {coro.send(10.0)}")
     print(f"Sending 20, New Avg: {coro.send(20.0)}")
     
-    # .throw() injects an exception into the generator at the point of the yield.
-    coro.throw(ValueError("Bad data!"))
+    try:
+        # .throw() injects an exception into the generator at the point of the yield.
+        coro.throw(ValueError("Bad data!"))
+    except StopIteration as e:
+        print(f"Caught expected StopIteration from coroutine return: {e.value}")
     
     # .close() forcefully terminates the generator (raises GeneratorExit inside it).
     coro.close()
@@ -237,6 +240,30 @@ def demonstrate_pipelines():
     print("Extracted Error Messages:")
     for msg in message_stream:
         print(f"  - {msg}")
+
+
+# ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (GENERATORS)
+# ============================================================================
+"""
+Q1: What is a generator, and what are its memory/performance advantages?
+A: A generator is a function containing the `yield` keyword. Unlike a standard function that runs to completion 
+   and returns a single collection, a generator pauses execution and yields values one at a time.
+   - Memory Advantage: It evaluates values lazily, requiring O(1) space complexity regardless of stream size.
+   - Speed Advantage: It yields items immediately without waiting to build a complete list.
+
+Q2: What is the difference between `yield` and `yield from`?
+A: 
+- `yield value` suspends the generator and returns a single value to the caller.
+- `yield from iterable` acts as a clean shorthand delegation. It yields all elements from the target sub-generator 
+  or iterable directly to the caller, bypassing the need for a manual `for item in iterable: yield item` loop.
+
+Q3: What do `.send()`, `.throw()`, and `.close()` do on a generator object?
+A: These methods allow bidirectional communication between the caller and the generator:
+   - `gen.send(value)`: Resumes the generator and sends `value` into it, which becomes the result of the active `yield` expression inside the generator.
+   - `gen.throw(type, value)`: Raises an exception inside the generator at the point where it was suspended.
+   - `gen.close()`: Raises a `GeneratorExit` exception inside the generator, forcing it to clean up resources and terminate.
+"""
 
 
 # ============================================================================

@@ -272,5 +272,29 @@ def main():
     print("3. NEVER run blocking code (time.sleep, CPU-heavy math) directly inside async functions.")
     print("4. Use TaskGroups (or gather) to run things concurrently.")
 
+
+# ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (ASYNCIO & COROUTINES)
+# ============================================================================
+"""
+Q1: What does "cooperative multitasking" mean in the context of asyncio?
+A: It means that the operating system does not preemptively interrupt or switch between tasks (unlike threading).
+   Instead, tasks must explicitly yield control back to the Event Loop using the `await` keyword.
+   If a task never awaits (or runs blocking CPU/IO operations), no other tasks can run, freezing the entire application.
+
+Q2: What happens if you run `time.sleep(5)` inside an async function, and how do you fix it?
+A: Since `time.sleep()` is synchronous and blocking, it blocks the main thread. Because asyncio runs on a single thread,
+   it blocks the Event Loop entirely, preventing any other coroutine from executing for 5 seconds.
+   To fix it, you should either:
+   1. Use `await asyncio.sleep(5)` if possible.
+   2. Run the blocking function in a separate executor thread using `await asyncio.to_thread()` or `loop.run_in_executor()`.
+
+Q3: What is the difference between `asyncio.gather()` and Python 3.11's `asyncio.TaskGroup`?
+A: 
+- `asyncio.gather(*aws)` is the older way to group concurrent tasks. If one task fails, the other tasks continue running in the background (unless explicitly canceled), which can cause silent resource leaks and orphaned tasks.
+- `asyncio.TaskGroup()` uses an asynchronous context manager. If one task inside the group raises an exception, all other active tasks in that group are automatically and immediately canceled. This implements safer "structured concurrency".
+"""
+
+
 if __name__ == "__main__":
     main()

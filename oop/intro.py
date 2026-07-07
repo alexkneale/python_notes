@@ -499,6 +499,34 @@ class DatabaseClient(metaclass=SingletonMeta):
 
 
 # ============================================================================
+# COMMON TECHNICAL INTERVIEW QUESTIONS & ANSWERS (OOP)
+# ============================================================================
+"""
+Q1: Explain how Method Resolution Order (MRO) works in Python.
+A: Python uses the C3 Linearization algorithm to compute a class's MRO.
+   MRO defines the order in which Python searches for attributes or methods in a multiple-inheritance hierarchy.
+   It ensures:
+   1. Subclasses are always searched before their parents.
+   2. The left-to-right order specified in the class definition is preserved.
+   You can inspect a class's search path using `Class.__mro__` or `Class.mro()`.
+
+Q2: What is the difference between `@classmethod` and `@staticmethod`?
+A: 
+- `@classmethod` receives the class object itself (`cls`) as its first argument.
+  It is typically used to implement factory methods (creating custom instances of the class with alternative inputs).
+- `@staticmethod` receives no special first argument (behaves like a plain function inside the class namespace).
+  It is used to group logical utility functions inside a class without needing any class or instance state.
+
+Q3: What does `super()` do, and why is calling `Parent.__init__(self)` considered bad practice in multiple inheritance?
+A: `super()` does not just call the immediate parent's method; it returns a delegate object that routes method calls 
+   to the next class in the class's computed MRO.
+   If you call parent constructors directly (e.g., `ParentA.__init__(self)` and `ParentB.__init__(self)`), 
+   any shared base class in a "diamond" inheritance pattern will end up being initialized multiple times.
+   Using `super().__init__()` guarantees that every class in the MRO is initialized exactly once.
+"""
+
+
+# ============================================================================
 # EXECUTION / DEMONSTRATION
 # ============================================================================
 
