@@ -84,15 +84,44 @@ async def sequential_vs_concurrent():
         mock_network_request("Req4", 0.3)
     )
     print(f"Concurrent Results: {results}")
+    print(f"Type of result: {type(results)}")
+    print(f"Type of first result: {type(results[0])}")
+    print(f"Contents of first result: {results[0]}")
     print(f"Concurrent Time: {time.perf_counter() - start:.2f}s\n")
 
 
 # ============================================================================
-# 3. BACKGROUND TASKS (FIRE AND FORGET)
+# 3. BACKGROUND TASKS & YIELDING CONTROL (COOPERATIVE SCHEDULING)
 # ============================================================================
 """
-Sometimes you want to start a coroutine and NOT wait for it to finish right away.
-You use `asyncio.create_task()`.
+Sometimes, you want to kick off a task in the background and continue running the 
+current function without immediately waiting (blocking) for that task to finish.
+In asyncio, we do this using `asyncio.create_task(coroutine)`.
+
+THE BEGINNER'S MENTAL MODEL (How Cooperative Scheduling Works):
+--------------------------------------------------------------
+1. The Chef and the Ticket Wheel (Single-Threaded):
+   Since Python asyncio runs on a SINGLE THREAD, think of it like a kitchen with only 
+   ONE chef (the Event Loop). At any given split second, the chef can only cook ONE dish.
+
+2. What does `asyncio.create_task(coro)` actually do?
+   It writes down a new order (creates a Task) and sticks it on the chef's ticket wheel.
+   HOWEVER, the chef is currently busy preparing your current dish (executing the rest 
+   of the current function)! The chef WILL NOT stop in the middle of a step to start 
+   the new ticket immediately. The background task just sits in the queue.
+
+3. How does the background task get its turn? (Yielding Control):
+   The background task can ONLY start executing when the current running function 
+   *pauses* and tells the chef: "Hey, I have a step that requires some waiting. 
+   You can go look at the other tickets on your wheel while I wait."
+   
+   We do this using `await` with an asynchronous operation, like `await asyncio.sleep(0.1)`.
+   When `await asyncio.sleep()` is called:
+   - It pauses the current function.
+   - It hands control back to the Event Loop (the chef).
+   - The Event Loop scans the ticket wheel, sees the pending `background_worker` task, 
+     and runs it!
+   - When the sleep time finishes, the Event Loop schedules the main function to resume.
 """
 
 async def background_worker():
@@ -103,14 +132,22 @@ async def background_worker():
 async def demonstrate_tasks():
     print("--- 3. Background Tasks ---")
     
-    # Schedule the coroutine on the Event Loop immediately.
+    # 1. Schedule background_worker on the Event Loop immediately.
+    #    This puts it in the queue, but does NOT start running it yet!
     task = asyncio.create_task(background_worker())
     
     print("  [Main] Task created, doing other work...")
-    await asyncio.sleep(0.1) # Yield control so the background task can start!
     
+    # 2. Yield control! By sleeping, we tell the Event Loop:
+    #    "We are pausing for 0.1s. Go run other pending tasks in the queue!"
+    #    The Event Loop sees the background task and starts running it.
+    await asyncio.sleep(0.1) 
+    
+    # 3. Resume! When the 0.1s sleep is up, the Event Loop returns here.
     print("  [Main] Back to main! Now let's wait for the background task to finish.")
-    await task # Now we actually wait for its completion.
+    
+    # 4. We explicitly wait for the background task's completion.
+    await task 
 
 
 # ============================================================================
@@ -196,8 +233,27 @@ Because asyncio is SINGLE-THREADED, if you run a blocking synchronous function
 (like `time.sleep()`, `requests.get()`, or heavy CPU math) inside a coroutine, 
 YOU FREEZE THE ENTIRE EVENT LOOP. No other coroutines can run!
 
-If you MUST run a blocking synchronous function, you must offload it to a 
-thread pool using `asyncio.to_thread()` (Python 3.9+).
+BUT WAIT! If asyncio is single-threaded, how can we use background threads?
+-----------------------------------------------------------------------------
+1. The Core Loop is Single-Threaded:
+   The main event loop itself, along with your async functions, runs entirely on 
+   ONE thread (usually the main thread).
+
+2. Python's Secret Thread Pool:
+   Under the hood, `asyncio.to_thread()` offloads the synchronous function to a 
+   separate, native operating system (OS) thread managed by a global `ThreadPoolExecutor`.
+
+3. The Concurrency Trick (GIL Release):
+   While the background OS thread is blocked (sleeping, querying a database, or waiting 
+   on a network request), it releases Python's Global Interpreter Lock (GIL).
+   This allows our single-threaded Event Loop (running on the main thread) to keep 
+   executing other Python coroutines unhindered.
+
+4. CPU-Bound Gotcha:
+   If the blocking function is CPU-bound (e.g. calculating millions of digits of Pi in pure Python),
+   it will STILL freeze/slow down the Event Loop even in a background thread because Python 
+   only allows one thread to execute Python bytecode at any given moment (due to the GIL).
+   For CPU-bound tasks, use Multiprocessing!
 """
 
 def blocking_sync_function():
@@ -230,13 +286,58 @@ async def demonstrate_blocking_vs_unblocking():
     counter_task = asyncio.create_task(background_counter())
     await asyncio.sleep(0.05) # Let counter print '0'
     
-    # ✅ This offloads the blocking work to a background thread, 
+    # ✅ This offloads the blocking work to a background thread pool, 
     # allowing the Event Loop to keep processing the counter_task!
     print("  [Main] Executing asyncio.to_thread... (Notice the counter keeps going!)")
     result = await asyncio.to_thread(blocking_sync_function)
     print(f"  [Main] Thread finished: {result}")
     
     await counter_task
+
+
+# ============================================================================
+# 7. INTERACTING WITH THE EVENT LOOP (`asyncio.get_running_loop`)
+# ============================================================================
+"""
+Sometimes, an advanced coroutine needs to access the active Event Loop instance directly—
+for example, to schedule a synchronous callback, create a Future, or run a task in a 
+custom executor pool.
+
+Why `asyncio.get_running_loop()` is preferred over `asyncio.get_event_loop()` (Python 3.7+):
+-----------------------------------------------------------------------------------------
+- `asyncio.get_event_loop()` (legacy): Has highly complex, context-dependent behavior. If no loop 
+  exists in the current thread, it may automatically create and bind one. This causes massive 
+  headaches, resource leaks, and test isolation bugs, especially in multi-threaded programs.
+- `asyncio.get_running_loop()` (modern): Safe and explicit. It returns the running event loop 
+  on the current thread. If no loop is running, it raises a `RuntimeError` immediately.
+"""
+
+def synchronous_callback(arg):
+    print(f"  [Callback] Loop executed me immediately! Received: {arg}")
+
+async def demonstrate_running_loop():
+    print("\n--- 7. Interacting with the Running Loop ---")
+    
+    # 1. Retrieve the running event loop instance safely
+    try:
+        loop = asyncio.get_running_loop()
+        print(f"  Successfully retrieved running loop: {loop}")
+    except RuntimeError as e:
+        print(f"  Error: {e}")
+        return
+
+    # 2. Schedule a synchronous callback to run on the loop as soon as possible
+    loop.call_soon(synchronous_callback, "Hello from the future!")
+    
+    # Let's pause for a moment to give the loop a chance to execute the scheduled callback
+    await asyncio.sleep(0.01)
+
+    # 3. Behind the Scenes of `to_thread`:
+    # `asyncio.to_thread()` is actually a modern convenience wrapper around `loop.run_in_executor()`!
+    # Here is how you do it manually using the loop's default executor:
+    print("  [Main] Running blocking function via loop.run_in_executor...")
+    result = await loop.run_in_executor(None, blocking_sync_function)
+    print(f"  [Main] run_in_executor result: {result}")
 
 
 # ============================================================================
@@ -264,6 +365,9 @@ def main():
     
     # Run Blocking prevention
     asyncio.run(demonstrate_blocking_vs_unblocking())
+    
+    # Run Event Loop inspection
+    asyncio.run(demonstrate_running_loop())
 
     print("\n--- Tutorial Complete ---")
     print("Summary:")
@@ -271,6 +375,8 @@ def main():
     print("2. 'await' suspends the coroutine and gives control back to the Event Loop.")
     print("3. NEVER run blocking code (time.sleep, CPU-heavy math) directly inside async functions.")
     print("4. Use TaskGroups (or gather) to run things concurrently.")
+    print("5. Use asyncio.to_thread() to offload blocking sync code to background threads.")
+    print("6. Use asyncio.get_running_loop() inside coroutines to safely interact with the loop.")
 
 
 # ============================================================================
@@ -293,6 +399,11 @@ Q3: What is the difference between `asyncio.gather()` and Python 3.11's `asyncio
 A: 
 - `asyncio.gather(*aws)` is the older way to group concurrent tasks. If one task fails, the other tasks continue running in the background (unless explicitly canceled), which can cause silent resource leaks and orphaned tasks.
 - `asyncio.TaskGroup()` uses an asynchronous context manager. If one task inside the group raises an exception, all other active tasks in that group are automatically and immediately canceled. This implements safer "structured concurrency".
+
+Q4: What is the difference between `asyncio.get_event_loop()` and `asyncio.get_running_loop()`?
+A: 
+- `asyncio.get_running_loop()` (introduced in Python 3.7) is strict: it only returns the active running event loop for the current thread. If no loop is running, it raises a `RuntimeError` immediately. This is the preferred way to get the loop inside coroutines.
+- `asyncio.get_event_loop()` has legacy, context-dependent behavior: if no loop is running, it may create and bind a new one in the current thread. This can cause silent resource leaks, thread safety issues, and test isolation bugs.
 """
 
 
