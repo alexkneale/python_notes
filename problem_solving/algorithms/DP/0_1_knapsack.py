@@ -274,26 +274,71 @@ HOW IT MAPS TO KNAPSACK:
 - We don't need `vals`! Instead of maximizing value, we check if exact sum is possible.
 - `max(...)` becomes boolean `OR` (`take or leave`).
 """
-def subset_sum(arr: List[int], sum_target: int) -> bool:
-    n = len(arr)
-    # dp[i][s] means: Can we form sum `s` using a subset of the first `i` items?
-    dp = [[False for _ in range(sum_target + 1)] for _ in range(n + 1)]
+def subset_sum_target_sum_rec(arr: List[int], sum_target: int, curr_index: int, curr_sum: int) -> bool:
 
-    # Base case 1: If sum_target is 0, answer is ALWAYS True (empty set sum is 0)
-    for i in range(n + 1):
+    # base case
+    if curr_sum == sum_target:
+        return True
+    if curr_sum > sum_target:
+        return False
+    
+    if curr_index >= len(arr):
+        return False
+
+    take = subset_sum_target_sum_rec(arr=arr, sum_target=sum_target, curr_index=curr_index+1, curr_sum=curr_sum+arr[curr_index])
+
+    leave = subset_sum_target_sum_rec(arr=arr, sum_target=sum_target, curr_index=curr_index+1, curr_sum=curr_sum)
+
+    return take or leave
+
+def subset_sum_target_sum_memo(arr: List[int], sum_target: int) -> bool:
+
+    memo : Dict[Tuple[int,int], bool] = {}
+
+    def helper(curr_index: int, curr_sum: int) -> bool:
+
+        if curr_sum == sum_target:
+            return True
+        if curr_sum > sum_target:
+            return False
+        if curr_index >= len(arr):
+            return False
+
+        if (curr_index, curr_sum) in memo:
+            return memo[curr_index, curr_sum]
+
+        
+        take = helper(curr_index=curr_index+1, curr_sum=curr_sum+arr[curr_index])
+        leave = helper(curr_index=curr_index+1, curr_sum=curr_sum)
+
+        result = take or leave
+
+        memo[curr_index,curr_sum] = result
+        return result
+    return helper(0,0)
+
+def subset_sum_target_sum_dp(arr: List[int], sum_target: int) -> bool:
+
+    # each element (i,j) in matrix indicates whether or not it is possible to form sum of j using elements up to index i
+
+    dp = [[False for _ in range(sum_target+1)] for _ in range(len(arr)+1)]
+
+    # base case - if sum_target is 0, then always true
+    for i in range(len(arr)+1):
         dp[i][0] = True
 
-    # Fill table
-    for i in range(1, n + 1):
-        for s in range(1, sum_target + 1):
-            if arr[i - 1] <= s:
-                # Choice: include arr[i-1] OR exclude arr[i-1]
-                dp[i][s] = dp[i - 1][s - arr[i - 1]] or dp[i - 1][s]
-            else:
-                # Cannot include
-                dp[i][s] = dp[i - 1][s]
+    for item_index in range(1,len(arr)+1):
+        curr_val = arr[item_index-1]
+    
+        for target in range(1,sum_target+1):
 
-    return dp[n][sum_target]
+            if curr_val <= target:
+                # choice: include curr_val OR exclude curr_val
+                dp[item_index][target] = dp[item_index-1][target-curr_val] or dp[item_index-1][target]
+            else:
+                # cannot include - if previous sums work out (item-index-1) then fine, otherwise it stays false
+                dp[item_index][target] = dp[item_index-1][target]
+    return dp[len(arr)][sum_target]            
 
 
 # ------------------------------------------------------------------------------
@@ -316,7 +361,7 @@ def can_partition_equal_sum(arr: List[int]) -> bool:
     if total_sum % 2 != 0:
         return False
     # Target is half of total sum
-    return subset_sum(arr, total_sum // 2)
+    return subset_sum_target_sum_dp(arr, total_sum // 2)
 
 
 # ------------------------------------------------------------------------------
@@ -376,7 +421,7 @@ if __name__ == "__main__":
     print(f"2. Top-Down (Memo) Result:     {res_memo}")
     print(f"3. Bottom-Up (Table) Result:   {res_tab}")
 
-    assert res_rec == res_memo == res_tab == 7, "All knapsack results should be 7!"
+    assert res_rec == res_memo == res_tab == 9, "All knapsack results should be 7!"
     print("\n[SUCCESS] All three 0/1 knapsack implementations match perfectly!")
 
     print("\n" + "=" * 70)
@@ -386,7 +431,7 @@ if __name__ == "__main__":
     # Test Subset Sum
     test_arr = [2, 3, 7, 8, 10]
     target_sum = 11
-    has_sub = subset_sum(test_arr, target_sum)
+    has_sub = subset_sum_target_sum_dp(test_arr, target_sum)
     print(f"Subset Sum: Does {test_arr} have a subset summing to {target_sum}? -> {has_sub}")
     assert has_sub is True  # 3 + 8 = 11
 
